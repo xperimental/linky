@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/spf13/pflag"
@@ -15,14 +16,16 @@ func makeWorkers(number int, linkChan chan string) []*worker {
 }
 
 func main() {
-	var startURL string
 	var concurrency int
-	pflag.StringVarP(&startURL, "url", "u", "", "URL to use as base for linkchecker.")
 	pflag.IntVarP(&concurrency, "concurrency", "c", 1, "Number of workers to use concurrently.")
 	pflag.Parse()
 
+	startURL := pflag.Arg(0)
+
 	if len(startURL) == 0 {
-		log.Fatalln("Need to provide a start URL.")
+		fmt.Println("Usage: linky [options] URL\n\nOptions:")
+		pflag.PrintDefaults()
+		return
 	}
 
 	if concurrency < 1 {
