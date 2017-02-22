@@ -3,17 +3,10 @@ package main
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/spf13/pflag"
 )
-
-func makeWorkers(number int, linkChan chan string) []*worker {
-	workers := make([]*worker, number)
-	for i := range workers {
-		workers[i] = newWorker(linkChan)
-	}
-	return workers
-}
 
 func main() {
 	var concurrency int
@@ -32,17 +25,45 @@ func main() {
 		log.Fatalln("Need at least one worker.")
 	}
 
-	log.Printf("URL: %s", startURL)
-	log.Printf("Workers: %d", concurrency)
+	fmt.Printf("URL: %s\n", startURL)
 
-	linkChan := make(chan string)
-	workers := makeWorkers(concurrency, linkChan)
-
-	log.Println("Checking...")
-	linkChan <- startURL
-
-	log.Println("Stop workers...")
-	for _, w := range workers {
-		w.Stop()
+	s, err := newSupervisor(startURL)
+	if err != nil {
+		log.Fatalf("Error creating supervisor: %s", err)
 	}
+
+	for i := 0; i < concurrency; i++ {
+		newWorker(s.WorkerChan(), s.UpdateChan())
+	}
+
+	log.Printf("[m] Waiting for completion...")
+	<-s.Done()
+	log.Printf("[m] Done.")
+
+	results := s.Results()
+	successful := 0
+	skipped := 0
+	errors := 0
+	var totalTime time.Duration
+	for _, v := range results {
+		if v.Error != nil {
+			errors++
+			continue
+		}
+
+		if v.Skipped {
+			skipped++
+			continue
+		}
+
+		successful++
+		totalTime += v.ResponseTime
+	}
+
+	fmt.Println("Results:")
+	fmt.Printf(" %5d total\n", len(results))
+	fmt.Printf(" %5d successful\n", successful)
+	fmt.Printf(" %5d skipped\n", skipped)
+	fmt.Printf(" %5d errors\n", errors)
+	fmt.Printf("Total time: %s\n", totalTime)
 }
