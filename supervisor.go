@@ -7,16 +7,17 @@ import (
 )
 
 type supervisor struct {
-	baseURL *url.URL
-	workers chan string
-	updates chan update
-	queue   []string
-	visited map[string]bool
-	results []update
-	done    chan struct{}
+	baseURL     *url.URL
+	workers     chan string
+	updates     chan update
+	queue       []string
+	visited     map[string]bool
+	results     []update
+	done        chan struct{}
+	showSkipped bool
 }
 
-func newSupervisor(baseURL string) (*supervisor, error) {
+func newSupervisor(baseURL string, showSkipped bool) (*supervisor, error) {
 	base, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
@@ -27,13 +28,14 @@ func newSupervisor(baseURL string) (*supervisor, error) {
 	}
 
 	s := &supervisor{
-		baseURL: base,
-		workers: make(chan string),
-		updates: make(chan update),
-		queue:   []string{baseURL},
-		visited: make(map[string]bool),
-		results: []update{},
-		done:    make(chan struct{}),
+		baseURL:     base,
+		workers:     make(chan string),
+		updates:     make(chan update),
+		queue:       []string{baseURL},
+		visited:     make(map[string]bool),
+		results:     []update{},
+		done:        make(chan struct{}),
+		showSkipped: showSkipped,
 	}
 
 	go s.loop()
@@ -70,13 +72,14 @@ func (s *supervisor) loop() {
 			continue
 		}
 
-		log.Printf("Queue: %d Visited: %d", len(s.queue), len(s.visited))
 		result := s.checkAndVisit(next)
 
 		s.visited[result.URL] = true
 		s.results = append(s.results, result)
 
-		fmt.Println(result)
+		if !result.Skipped || s.showSkipped {
+			fmt.Println(result)
+		}
 
 		unvisited := s.filterLinks(result.Links)
 		s.queue = append(s.queue, unvisited...)

@@ -10,7 +10,9 @@ import (
 
 func main() {
 	var concurrency int
+	var showSkipped bool
 	pflag.IntVarP(&concurrency, "concurrency", "c", 1, "Number of workers to use concurrently.")
+	pflag.BoolVar(&showSkipped, "show-skipped", false, "Show skipped URLs.")
 	pflag.Parse()
 
 	startURL := pflag.Arg(0)
@@ -27,7 +29,7 @@ func main() {
 
 	fmt.Printf("URL: %s\n", startURL)
 
-	s, err := newSupervisor(startURL)
+	s, err := newSupervisor(startURL, showSkipped)
 	if err != nil {
 		log.Fatalf("Error creating supervisor: %s", err)
 	}
@@ -36,9 +38,7 @@ func main() {
 		newWorker(s.WorkerChan(), s.UpdateChan())
 	}
 
-	log.Printf("[m] Waiting for completion...")
 	<-s.Done()
-	log.Printf("[m] Done.")
 
 	results := s.Results()
 	successful := 0

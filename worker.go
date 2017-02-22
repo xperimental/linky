@@ -2,7 +2,6 @@ package main
 
 import (
 	"io"
-	"log"
 	"net/http"
 	"time"
 
@@ -32,16 +31,13 @@ func newWorker(urls <-chan string, updates chan<- update) *worker {
 }
 
 func (w *worker) loop() {
-	log.Printf("[w] Starting worker.")
 	for u := range w.urls {
-		log.Printf("[w] Visit: %s", u)
 		result := w.fetchURL(u)
 
 		go func() {
 			w.updates <- result
 		}()
 	}
-	log.Printf("[w] Worker done.")
 }
 
 func (w *worker) fetchURL(url string) (result update) {
