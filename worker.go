@@ -78,6 +78,16 @@ func (w *worker) parseLinks(body io.Reader) []string {
 				if len(link) > 0 {
 					links = append(links, link)
 				}
+			case "img":
+				link := extractAttribute(token, "src")
+				if len(link) > 0 {
+					links = append(links, link)
+				}
+			case "script":
+				link := extractAttribute(token, "src")
+				if len(link) > 0 {
+					links = append(links, link)
+				}
 			}
 		}
 	}
