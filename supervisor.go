@@ -81,7 +81,7 @@ func (s *supervisor) loop() {
 			fmt.Println(result)
 		}
 
-		unvisited := s.filterLinks(result.Links)
+		unvisited := s.filterLinks(result.URL, result.Links)
 		s.queue = append(s.queue, unvisited...)
 	}
 	s.done <- struct{}{}
@@ -107,11 +107,16 @@ func (s *supervisor) checkAndVisit(rawurl string) update {
 	return <-s.updates
 }
 
-func (s *supervisor) filterLinks(links []string) []string {
+func (s *supervisor) filterLinks(referer string, links []string) []string {
+	refererURL, err := url.Parse(referer)
+	if err != nil {
+		refererURL = s.baseURL
+	}
+
 	unvisited := []string{}
 
 	for _, u := range links {
-		canonical, err := canonicalizeURL(s.baseURL, u)
+		canonical, err := canonicalizeURL(refererURL, u)
 		if err != nil {
 			log.Printf("[s] Error parsing link %s: %s", u, err)
 		}
