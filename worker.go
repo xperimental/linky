@@ -2,12 +2,11 @@ package main
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 	"strings"
 	"time"
 
-	"golang.org/x/net/html"
+	"github.com/xperimental/linky/html"
 )
 
 var clientTimeout = 60 * time.Second
@@ -64,49 +63,8 @@ func (w *worker) fetchURL(url string) (result update) {
 	result.ContentType = res.Header.Get("Content-Type")
 
 	if strings.HasPrefix(result.ContentType, "text/html") {
-		result.Links = w.parseLinks(res.Body)
+		result.Links = html.ParseLinks(res.Body)
 	}
 
 	return result
-}
-
-var attributeMap = map[string]string{
-	"a":      "href",
-	"link":   "href",
-	"img":    "src",
-	"script": "src",
-}
-
-func (w *worker) parseLinks(body io.Reader) []string {
-	links := []string{}
-	page := html.NewTokenizer(body)
-	for {
-		tt := page.Next()
-		if tt == html.ErrorToken {
-			return links
-		}
-
-		if tt == html.StartTagToken || tt == html.SelfClosingTagToken {
-			token := page.Token()
-			attribute, ok := attributeMap[token.DataAtom.String()]
-			if !ok {
-				continue
-			}
-
-			link := extractAttribute(token, attribute)
-			if len(link) > 0 {
-				links = append(links, link)
-			}
-		}
-	}
-}
-
-func extractAttribute(token html.Token, attrName string) string {
-	for _, attr := range token.Attr {
-		if attr.Key == attrName {
-			return attr.Val
-		}
-	}
-
-	return ""
 }

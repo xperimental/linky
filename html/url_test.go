@@ -1,4 +1,4 @@
-package main
+package html
 
 import (
 	"net/url"
@@ -51,7 +51,7 @@ func TestCanonicalizeURL(t *testing.T) {
 		t.Run(test.desc, func(t *testing.T) {
 			t.Parallel()
 
-			result, err := canonicalizeURL(test.base, test.raw)
+			result, err := CanonicalizeURL(test.base, test.raw)
 
 			if err != test.err {
 				t.Errorf("got error '%s', wanted '%s'", err, test.err)

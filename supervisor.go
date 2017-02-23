@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+
+	"github.com/xperimental/linky/html"
 )
 
 type supervisor struct {
@@ -116,7 +118,7 @@ func (s *supervisor) filterLinks(referer string, links []string) []string {
 	unvisited := []string{}
 
 	for _, u := range links {
-		canonical, err := canonicalizeURL(refererURL, u)
+		canonical, err := html.CanonicalizeURL(refererURL, u)
 		if err != nil {
 			log.Printf("[s] Error parsing link %s: %s", u, err)
 		}
