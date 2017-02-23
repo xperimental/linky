@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"log"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/spf13/pflag"
@@ -43,8 +45,30 @@ func showResults(results []update) {
 	fmt.Printf("Total time: %s\n", totalTime)
 
 	fmt.Println("\nContent Types:")
+	sortTypes := []struct {
+		contentType string
+		count       int
+	}{}
 	for t, c := range types {
-		fmt.Printf(" %5d %s\n", c, t)
+		sortTypes = append(sortTypes, struct {
+			contentType string
+			count       int
+		}{
+			contentType: t,
+			count:       c,
+		})
+	}
+	sort.Slice(sortTypes, func(i int, j int) bool {
+		a := sortTypes[i].count
+		b := sortTypes[j].count
+		if a == b {
+			return strings.Compare(sortTypes[i].contentType, sortTypes[j].contentType) < 0
+		}
+
+		return a > b
+	})
+	for _, v := range sortTypes {
+		fmt.Printf(" %5d %s\n", v.count, v.contentType)
 	}
 }
 
