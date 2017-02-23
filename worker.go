@@ -46,13 +46,14 @@ func (w *worker) fetchURL(url string) (result update) {
 	start := time.Now()
 
 	res, err := w.client.Get(url)
+	result.ResponseTime = time.Since(start)
+
 	if err != nil {
 		result.Error = err
 		return
 	}
 	defer res.Body.Close()
 
-	result.ResponseTime = time.Since(start)
 	result.Status = res.StatusCode
 
 	if res.StatusCode < http.StatusOK || res.StatusCode >= 300 {

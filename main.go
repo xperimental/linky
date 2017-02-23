@@ -18,24 +18,25 @@ func showResults(results []update) int {
 	var totalTime time.Duration
 	types := make(map[string]int)
 	for _, v := range results {
+		if v.Skipped {
+			skipped++
+			continue
+		}
+
+		totalTime += v.ResponseTime
+
 		if v.Error != nil {
 			errors++
 			continue
 		}
 
-		if v.Skipped {
-			skipped++
-			continue
-		}
+		successful++
 
 		if len(v.ContentType) > 0 {
 			types[v.ContentType]++
 		} else {
 			types["Unknown"]++
 		}
-
-		successful++
-		totalTime += v.ResponseTime
 	}
 
 	fmt.Println("\nResults:")
@@ -45,6 +46,14 @@ func showResults(results []update) int {
 	fmt.Printf(" %5d errors\n", errors)
 	fmt.Printf("Total time: %s\n", totalTime)
 
+	if len(types) > 0 {
+		showContentTypes(types)
+	}
+
+	return errors
+}
+
+func showContentTypes(types map[string]int) {
 	fmt.Println("\nContent Types:")
 	sortTypes := []struct {
 		contentType string
@@ -71,8 +80,6 @@ func showResults(results []update) int {
 	for _, v := range sortTypes {
 		fmt.Printf(" %5d %s\n", v.count, v.contentType)
 	}
-
-	return errors
 }
 
 func main() {

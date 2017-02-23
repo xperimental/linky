@@ -17,7 +17,7 @@ type update struct {
 
 func (u update) String() string {
 	if u.Error != nil {
-		return fmt.Sprintf("[ERR] %s (%s)", u.URL, u.Error)
+		return fmt.Sprintf("[ERR] %s (%s; %s)", u.URL, u.ResponseTime, u.Error)
 	}
 
 	if u.Skipped {
