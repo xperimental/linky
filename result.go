@@ -10,8 +10,8 @@ type update struct {
 	Skipped      bool
 	Error        error
 	Status       int
-	Size         int
 	ResponseTime time.Duration
+	ContentType  string
 	Links        []string
 }
 

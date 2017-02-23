@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"golang.org/x/net/html"
@@ -60,7 +61,11 @@ func (w *worker) fetchURL(url string) (result update) {
 		return
 	}
 
-	result.Links = w.parseLinks(res.Body)
+	result.ContentType = res.Header.Get("Content-Type")
+
+	if strings.HasPrefix(result.ContentType, "text/html") {
+		result.Links = w.parseLinks(res.Body)
+	}
 
 	return result
 }

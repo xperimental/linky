@@ -8,6 +8,46 @@ import (
 	"github.com/spf13/pflag"
 )
 
+func showResults(results []update) {
+	successful := 0
+	skipped := 0
+	errors := 0
+	var totalTime time.Duration
+	types := make(map[string]int)
+	for _, v := range results {
+		if v.Error != nil {
+			errors++
+			continue
+		}
+
+		if v.Skipped {
+			skipped++
+			continue
+		}
+
+		if len(v.ContentType) > 0 {
+			types[v.ContentType]++
+		} else {
+			types["Unknown"]++
+		}
+
+		successful++
+		totalTime += v.ResponseTime
+	}
+
+	fmt.Println("\nResults:")
+	fmt.Printf(" %5d total\n", len(results))
+	fmt.Printf(" %5d successful\n", successful)
+	fmt.Printf(" %5d skipped\n", skipped)
+	fmt.Printf(" %5d errors\n", errors)
+	fmt.Printf("Total time: %s\n", totalTime)
+
+	fmt.Println("\nContent Types:")
+	for t, c := range types {
+		fmt.Printf(" %5d %s\n", c, t)
+	}
+}
+
 func main() {
 	var concurrency int
 	var showSkipped bool
@@ -40,30 +80,5 @@ func main() {
 
 	<-s.Done()
 
-	results := s.Results()
-	successful := 0
-	skipped := 0
-	errors := 0
-	var totalTime time.Duration
-	for _, v := range results {
-		if v.Error != nil {
-			errors++
-			continue
-		}
-
-		if v.Skipped {
-			skipped++
-			continue
-		}
-
-		successful++
-		totalTime += v.ResponseTime
-	}
-
-	fmt.Println("Results:")
-	fmt.Printf(" %5d total\n", len(results))
-	fmt.Printf(" %5d successful\n", successful)
-	fmt.Printf(" %5d skipped\n", skipped)
-	fmt.Printf(" %5d errors\n", errors)
-	fmt.Printf("Total time: %s\n", totalTime)
+	showResults(s.Results())
 }
