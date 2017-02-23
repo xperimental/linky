@@ -18,6 +18,5 @@ Binary releases will be coming soon.
 Usage: linky [options] URL
 
 Options:
-  -c, --concurrency int   Number of workers to use concurrently. (default 1)
-      --show-skipped      Show skipped URLs.
+      --show-skipped   Show skipped URLs.
 ```

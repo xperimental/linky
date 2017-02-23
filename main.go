@@ -126,9 +126,7 @@ func showContentTypes(types map[string]int) {
 }
 
 func main() {
-	var concurrency int
 	var showSkipped bool
-	pflag.IntVarP(&concurrency, "concurrency", "c", 1, "Number of workers to use concurrently.")
 	pflag.BoolVar(&showSkipped, "show-skipped", false, "Show skipped URLs.")
 	pflag.Parse()
 
@@ -140,10 +138,6 @@ func main() {
 		return
 	}
 
-	if concurrency < 1 {
-		log.Fatalln("Need at least one worker.")
-	}
-
 	fmt.Printf("URL: %s\n", startURL)
 
 	s, err := newSupervisor(startURL, showSkipped)
@@ -151,9 +145,7 @@ func main() {
 		log.Fatalf("Error creating supervisor: %s", err)
 	}
 
-	for i := 0; i < concurrency; i++ {
-		newWorker(s.WorkerChan(), s.UpdateChan())
-	}
+	newWorker(s.WorkerChan(), s.UpdateChan())
 
 	<-s.Done()
 
