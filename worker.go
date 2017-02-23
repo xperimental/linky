@@ -70,6 +70,13 @@ func (w *worker) fetchURL(url string) (result update) {
 	return result
 }
 
+var attributeMap = map[string]string{
+	"a":      "href",
+	"link":   "href",
+	"img":    "src",
+	"script": "src",
+}
+
 func (w *worker) parseLinks(body io.Reader) []string {
 	links := []string{}
 	page := html.NewTokenizer(body)
@@ -79,24 +86,16 @@ func (w *worker) parseLinks(body io.Reader) []string {
 			return links
 		}
 
-		if tt == html.StartTagToken {
+		if tt == html.StartTagToken || tt == html.SelfClosingTagToken {
 			token := page.Token()
-			switch token.DataAtom.String() {
-			case "a":
-				link := extractAttribute(token, "href")
-				if len(link) > 0 {
-					links = append(links, link)
-				}
-			case "img":
-				link := extractAttribute(token, "src")
-				if len(link) > 0 {
-					links = append(links, link)
-				}
-			case "script":
-				link := extractAttribute(token, "src")
-				if len(link) > 0 {
-					links = append(links, link)
-				}
+			attribute, ok := attributeMap[token.DataAtom.String()]
+			if !ok {
+				continue
+			}
+
+			link := extractAttribute(token, attribute)
+			if len(link) > 0 {
+				links = append(links, link)
 			}
 		}
 	}
