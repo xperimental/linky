@@ -27,18 +27,6 @@ func (u update) String() string {
 	return fmt.Sprintf("[%03d] %s (%s; %d links)", u.Status, u.URL, u.ResponseTime, len(u.Links))
 }
 
-func (u update) IsValid() bool {
-	if u.Error != nil {
-		return false
-	}
-
-	if u.Status < 200 {
-		return false
-	}
-
-	if u.Status > 299 {
-		return false
-	}
-
-	return true
+func (u update) IsOK() bool {
+	return u.Status >= 200 && u.Status <= 299
 }

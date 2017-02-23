@@ -13,10 +13,11 @@ import (
 
 func showResults(results []update) int {
 	successful := 0
+	nonOk := 0
 	skipped := 0
-	invalid := 0
 	errors := 0
 	var totalTime time.Duration
+	codes := make(map[int]int)
 	types := make(map[string]int)
 	for _, v := range results {
 		if v.Skipped {
@@ -31,12 +32,12 @@ func showResults(results []update) int {
 			continue
 		}
 
-		if !v.IsValid() {
-			invalid++
-			continue
-		}
-
 		successful++
+
+		codes[v.Status]++
+		if !v.IsOK() {
+			nonOk++
+		}
 
 		if len(v.ContentType) > 0 {
 			types[v.ContentType]++
@@ -48,16 +49,48 @@ func showResults(results []update) int {
 	fmt.Println("\nResults:")
 	fmt.Printf(" %5d total\n", len(results))
 	fmt.Printf(" %5d successful\n", successful)
-	fmt.Printf(" %5d invalid (non 2xx)\n", invalid)
 	fmt.Printf(" %5d errors\n", errors)
 	fmt.Printf(" %5d skipped\n", skipped)
 	fmt.Printf("Total time: %s\n", totalTime)
+
+	if len(codes) > 0 {
+		showStatusCodes(codes)
+	}
 
 	if len(types) > 0 {
 		showContentTypes(types)
 	}
 
-	return invalid + errors
+	return nonOk + errors
+}
+
+func showStatusCodes(codes map[int]int) {
+	fmt.Println("\nStatus Codes:")
+	sortCodes := []struct {
+		status int
+		count  int
+	}{}
+	for s, c := range codes {
+		sortCodes = append(sortCodes, struct {
+			status int
+			count  int
+		}{
+			status: s,
+			count:  c,
+		})
+	}
+	sort.Slice(sortCodes, func(i int, j int) bool {
+		a := sortCodes[i].count
+		b := sortCodes[j].count
+		if a == b {
+			return sortCodes[i].status < sortCodes[j].status
+		}
+
+		return a > b
+	})
+	for _, v := range sortCodes {
+		fmt.Printf(" %5d %d\n", v.count, v.status)
+	}
 }
 
 func showContentTypes(types map[string]int) {
