@@ -20,7 +20,7 @@ func TestCanonicalizeURL(t *testing.T) {
 		base   *url.URL
 		raw    string
 		result string
-		err    error
+		err    bool
 	}{
 		{
 			desc:   "simple",
@@ -46,6 +46,12 @@ func TestCanonicalizeURL(t *testing.T) {
 			raw:    "/image.png",
 			result: "https://www.example.com/image.png",
 		},
+		{
+			desc: "error",
+			base: u("http://www.example.com"),
+			raw:  ":blah",
+			err:  true,
+		},
 	} {
 		test := test
 		t.Run(test.desc, func(t *testing.T) {
@@ -53,8 +59,8 @@ func TestCanonicalizeURL(t *testing.T) {
 
 			result, err := CanonicalizeURL(test.base, test.raw)
 
-			if err != test.err {
-				t.Errorf("got error '%s', wanted '%s'", err, test.err)
+			if err != nil != test.err {
+				t.Errorf("got error '%#v', wanted '%#v'", err, test.err)
 			}
 
 			if err != nil {
