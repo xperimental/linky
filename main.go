@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"os"
 	"sort"
 	"strings"
 	"time"
@@ -10,7 +11,7 @@ import (
 	"github.com/spf13/pflag"
 )
 
-func showResults(results []update) {
+func showResults(results []update) int {
 	successful := 0
 	skipped := 0
 	errors := 0
@@ -70,6 +71,8 @@ func showResults(results []update) {
 	for _, v := range sortTypes {
 		fmt.Printf(" %5d %s\n", v.count, v.contentType)
 	}
+
+	return errors
 }
 
 func main() {
@@ -104,5 +107,7 @@ func main() {
 
 	<-s.Done()
 
-	showResults(s.Results())
+	if showResults(s.Results()) > 0 {
+		os.Exit(1)
+	}
 }
