@@ -22,6 +22,7 @@ for os in $OS; do
   for arch in $ARCH; do
     echo "Building os=$os arch=$arch"
     file="_build/linky-$os-$arch$ext"
-    GOOS=$os GOARCH=$arch go build -o "$file" .
+    CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -o "$file" -ldflags "-w" .
+    upx -9 "$file"
   done
 done
