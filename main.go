@@ -14,6 +14,7 @@ import (
 func showResults(results []update) int {
 	successful := 0
 	skipped := 0
+	invalid := 0
 	errors := 0
 	var totalTime time.Duration
 	types := make(map[string]int)
@@ -30,6 +31,11 @@ func showResults(results []update) int {
 			continue
 		}
 
+		if !v.IsValid() {
+			invalid++
+			continue
+		}
+
 		successful++
 
 		if len(v.ContentType) > 0 {
@@ -42,15 +48,16 @@ func showResults(results []update) int {
 	fmt.Println("\nResults:")
 	fmt.Printf(" %5d total\n", len(results))
 	fmt.Printf(" %5d successful\n", successful)
-	fmt.Printf(" %5d skipped\n", skipped)
+	fmt.Printf(" %5d invalid (non 2xx)\n", invalid)
 	fmt.Printf(" %5d errors\n", errors)
+	fmt.Printf(" %5d skipped\n", skipped)
 	fmt.Printf("Total time: %s\n", totalTime)
 
 	if len(types) > 0 {
 		showContentTypes(types)
 	}
 
-	return errors
+	return invalid + errors
 }
 
 func showContentTypes(types map[string]int) {

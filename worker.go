@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -57,7 +56,6 @@ func (w *worker) fetchURL(url string) (result update) {
 	result.Status = res.StatusCode
 
 	if res.StatusCode < http.StatusOK || res.StatusCode >= 300 {
-		result.Error = fmt.Errorf("non-ok status code: %d", res.StatusCode)
 		return
 	}
 
