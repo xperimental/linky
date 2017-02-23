@@ -18,6 +18,7 @@ func showResults(results []update) int {
 	errors := 0
 	var totalTime time.Duration
 	codes := make(map[int]int)
+	codes[200] = 0
 	types := make(map[string]int)
 	for _, v := range results {
 		if v.Skipped {
@@ -53,7 +54,7 @@ func showResults(results []update) int {
 	fmt.Printf(" %5d skipped\n", skipped)
 	fmt.Printf("Total time: %s\n", totalTime)
 
-	if len(codes) > 0 {
+	if len(codes) > 1 {
 		showStatusCodes(codes)
 	}
 
@@ -89,7 +90,9 @@ func showStatusCodes(codes map[int]int) {
 		return a > b
 	})
 	for _, v := range sortCodes {
-		fmt.Printf(" %5d %d\n", v.count, v.status)
+		if v.count > 0 {
+			fmt.Printf(" %5d %d\n", v.count, v.status)
+		}
 	}
 }
 
