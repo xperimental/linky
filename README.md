@@ -18,5 +18,6 @@ Binary releases will be coming soon.
 Usage: linky [options] URL
 
 Options:
-      --show-skipped   Show skipped URLs.
+      --ignore-referrer   Ignore referrer when checking for duplicate URLs.
+      --show-skipped      Show skipped URLs.
 ```

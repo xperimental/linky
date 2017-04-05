@@ -11,18 +11,18 @@ import (
 var clientTimeout = 60 * time.Second
 
 type worker struct {
-	client  *http.Client
-	urls    <-chan string
-	updates chan<- update
+	client    *http.Client
+	locations <-chan location
+	updates   chan<- update
 }
 
-func newWorker(urls <-chan string, updates chan<- update) *worker {
+func newWorker(locations <-chan location, updates chan<- update) *worker {
 	w := &worker{
 		client: &http.Client{
 			Timeout: clientTimeout,
 		},
-		urls:    urls,
-		updates: updates,
+		locations: locations,
+		updates:   updates,
 	}
 
 	go w.loop()
@@ -31,8 +31,8 @@ func newWorker(urls <-chan string, updates chan<- update) *worker {
 }
 
 func (w *worker) loop() {
-	for u := range w.urls {
-		result := w.fetchURL(u)
+	for l := range w.locations {
+		result := w.fetchURL(l)
 
 		go func() {
 			w.updates <- result
@@ -40,11 +40,11 @@ func (w *worker) loop() {
 	}
 }
 
-func (w *worker) fetchURL(url string) (result update) {
-	result.URL = url
+func (w *worker) fetchURL(location location) (result update) {
+	result.Location = location
 	start := time.Now()
 
-	res, err := w.client.Get(url)
+	res, err := w.client.Get(location.URL)
 	result.ResponseTime = time.Since(start)
 
 	if err != nil {

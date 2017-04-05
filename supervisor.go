@@ -9,17 +9,18 @@ import (
 )
 
 type supervisor struct {
-	baseURL     *url.URL
-	workers     chan string
-	updates     chan update
-	queue       []string
-	visited     map[string]bool
-	results     []update
-	done        chan struct{}
-	showSkipped bool
+	baseURL        *url.URL
+	workers        chan location
+	updates        chan update
+	queue          []location
+	visited        map[location]bool
+	results        []update
+	done           chan struct{}
+	showSkipped    bool
+	ignoreReferrer bool
 }
 
-func newSupervisor(baseURL string, showSkipped bool) (*supervisor, error) {
+func newSupervisor(baseURL string, showSkipped bool, ignoreReferrer bool) (*supervisor, error) {
 	base, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
@@ -29,15 +30,21 @@ func newSupervisor(baseURL string, showSkipped bool) (*supervisor, error) {
 		return nil, fmt.Errorf("not an absolute URL: %s", baseURL)
 	}
 
+	start := location{
+		URL:      baseURL,
+		Referrer: "",
+	}
+
 	s := &supervisor{
-		baseURL:     base,
-		workers:     make(chan string),
-		updates:     make(chan update),
-		queue:       []string{baseURL},
-		visited:     make(map[string]bool),
-		results:     []update{},
-		done:        make(chan struct{}),
-		showSkipped: showSkipped,
+		baseURL:        base,
+		workers:        make(chan location),
+		updates:        make(chan update),
+		queue:          []location{start},
+		visited:        make(map[location]bool),
+		results:        []update{},
+		done:           make(chan struct{}),
+		showSkipped:    showSkipped,
+		ignoreReferrer: ignoreReferrer,
 	}
 
 	go s.loop()
@@ -49,7 +56,7 @@ func (s *supervisor) UpdateChan() chan<- update {
 	return s.updates
 }
 
-func (s *supervisor) WorkerChan() <-chan string {
+func (s *supervisor) WorkerChan() <-chan location {
 	return s.workers
 }
 
@@ -70,52 +77,52 @@ func (s *supervisor) loop() {
 		next := s.queue[0]
 		s.queue = s.queue[1:]
 
-		if v := s.visited[next]; v {
+		if s.checkVisited(next) {
 			continue
 		}
 
 		result := s.checkAndVisit(next)
 
-		s.visited[result.URL] = true
+		s.markVisit(result.Location)
 		s.results = append(s.results, result)
 
 		if !result.Skipped || s.showSkipped {
 			fmt.Println(result)
 		}
 
-		unvisited := s.filterLinks(result.URL, result.Links)
+		unvisited := s.filterLinks(result.Location.URL, result.Links)
 		s.queue = append(s.queue, unvisited...)
 	}
 	s.done <- struct{}{}
 }
 
-func (s *supervisor) checkAndVisit(rawurl string) update {
-	parsed, err := url.Parse(rawurl)
+func (s *supervisor) checkAndVisit(loc location) update {
+	parsed, err := url.Parse(loc.URL)
 	if err != nil {
 		return update{
-			URL:   rawurl,
-			Error: err,
+			Location: loc,
+			Error:    err,
 		}
 	}
 
 	if parsed.Host != s.baseURL.Host {
 		return update{
-			URL:     rawurl,
-			Skipped: true,
+			Location: loc,
+			Skipped:  true,
 		}
 	}
 
-	s.workers <- rawurl
+	s.workers <- loc
 	return <-s.updates
 }
 
-func (s *supervisor) filterLinks(referer string, links []string) []string {
-	refererURL, err := url.Parse(referer)
+func (s *supervisor) filterLinks(referrer string, links []string) []location {
+	refererURL, err := url.Parse(referrer)
 	if err != nil {
 		refererURL = s.baseURL
 	}
 
-	unvisited := []string{}
+	unvisited := []location{}
 
 	for _, u := range links {
 		canonical, err := html.CanonicalizeURL(refererURL, u)
@@ -123,11 +130,32 @@ func (s *supervisor) filterLinks(referer string, links []string) []string {
 			log.Printf("[s] Error parsing link %s: %s", u, err)
 		}
 
-		if _, ok := s.visited[canonical]; ok {
+		canonicalLocation := location{
+			URL:      canonical,
+			Referrer: referrer,
+		}
+
+		if s.checkVisited(canonicalLocation) {
 			continue
 		}
 
-		unvisited = append(unvisited, canonical)
+		unvisited = append(unvisited, canonicalLocation)
 	}
 	return unvisited
+}
+
+func (s *supervisor) markVisit(loc location) {
+	if s.ignoreReferrer {
+		loc.Referrer = ""
+	}
+
+	s.visited[loc] = true
+}
+
+func (s *supervisor) checkVisited(loc location) bool {
+	if s.ignoreReferrer {
+		loc.Referrer = ""
+	}
+
+	return s.visited[loc]
 }
