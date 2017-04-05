@@ -10,8 +10,9 @@ fi
 
 mkdir _build
 
-OS="linux darwin windows"
-ARCH="amd64"
+readonly OS="linux darwin windows"
+readonly ARCH="amd64"
+VERSION="$(git describe --tags)"; readonly VERSION
 
 for os in $OS; do
   ext=
@@ -21,7 +22,7 @@ for os in $OS; do
 
   for arch in $ARCH; do
     echo "Building os=$os arch=$arch"
-    file="_build/linky-$os-$arch$ext"
+    file="_build/linky-$VERSION-$os-$arch$ext"
     CGO_ENABLED=0 GOOS=$os GOARCH=$arch go build -o "$file" -ldflags "-w" .
     upx -9 "$file"
   done
