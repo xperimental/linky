@@ -12,9 +12,9 @@ func main() {
 	var showSkipped bool
 	var ignoreReferrer bool
 	var hideOK bool
-	pflag.BoolVar(&showSkipped, "show-skipped", false, "Show skipped URLs.")
-	pflag.BoolVar(&ignoreReferrer, "ignore-referrer", false, "Ignore referrer when checking for duplicate URLs.")
-	pflag.BoolVar(&hideOK, "hide-ok", false, "Do not show URLs with good response codes.")
+	pflag.BoolVarP(&showSkipped, "show-skipped", "s", false, "Show skipped URLs.")
+	pflag.BoolVarP(&ignoreReferrer, "ignore-referrer", "i", false, "Ignore referrer when checking for duplicate URLs.")
+	pflag.BoolVarP(&hideOK, "hide-ok", "o", false, "Do not show URLs with good response codes.")
 	pflag.Parse()
 
 	startURL := pflag.Arg(0)
