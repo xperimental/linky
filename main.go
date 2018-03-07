@@ -9,12 +9,12 @@ import (
 )
 
 func main() {
-	var showSkipped bool
+	var verbose bool
 	var ignoreReferrer bool
-	var hideOK bool
-	pflag.BoolVarP(&showSkipped, "show-skipped", "s", false, "Show skipped URLs.")
+	var quiet bool
+	pflag.BoolVarP(&verbose, "verbose", "v", false, "Show all requests including skipped.")
+	pflag.BoolVarP(&quiet, "quiet", "q", false, "Only show errors.")
 	pflag.BoolVarP(&ignoreReferrer, "ignore-referrer", "i", false, "Ignore referrer when checking for duplicate URLs.")
-	pflag.BoolVarP(&hideOK, "hide-ok", "o", false, "Do not show URLs with good response codes.")
 	pflag.Parse()
 
 	startURL := pflag.Arg(0)
@@ -27,7 +27,7 @@ func main() {
 
 	fmt.Printf("URL: %s\n", startURL)
 
-	s, err := newSupervisor(startURL, showSkipped, ignoreReferrer, hideOK)
+	s, err := newSupervisor(startURL, verbose, quiet, ignoreReferrer)
 	if err != nil {
 		log.Fatalf("Error creating supervisor: %s", err)
 	}
