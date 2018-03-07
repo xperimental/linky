@@ -18,7 +18,7 @@ Binary releases will be coming soon.
 Usage: linky [options] URL
 
 Options:
-  -o, --hide-ok           Do not show URLs with good response codes.
   -i, --ignore-referrer   Ignore referrer when checking for duplicate URLs.
-  -s, --show-skipped      Show skipped URLs.
+  -q, --quiet             Only show errors.
+  -v, --verbose           Show all requests including skipped.
 ```
