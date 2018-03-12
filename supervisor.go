@@ -16,11 +16,12 @@ type supervisor struct {
 	visited        map[location]bool
 	results        []update
 	done           chan struct{}
-	showSkipped    bool
+	verbose        bool
+	quiet          bool
 	ignoreReferrer bool
 }
 
-func newSupervisor(baseURL string, showSkipped bool, ignoreReferrer bool) (*supervisor, error) {
+func newSupervisor(baseURL string, verbose bool, quiet bool, ignoreReferrer bool) (*supervisor, error) {
 	base, err := url.Parse(baseURL)
 	if err != nil {
 		return nil, err
@@ -43,7 +44,8 @@ func newSupervisor(baseURL string, showSkipped bool, ignoreReferrer bool) (*supe
 		visited:        make(map[location]bool),
 		results:        []update{},
 		done:           make(chan struct{}),
-		showSkipped:    showSkipped,
+		verbose:        verbose,
+		quiet:          quiet,
 		ignoreReferrer: ignoreReferrer,
 	}
 
@@ -86,7 +88,7 @@ func (s *supervisor) loop() {
 		s.markVisit(result.Location)
 		s.results = append(s.results, result)
 
-		if !result.Skipped || s.showSkipped {
+		if s.verbose || (!result.IsOK() && !result.Skipped) || (result.IsOK() && !s.quiet) {
 			fmt.Println(result)
 		}
 
