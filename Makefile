@@ -14,8 +14,14 @@ test:
 build-binary:
 	$(GO_CMD) build -tags netgo -ldflags "-w -X main.Version=$(VERSION) -X main.GitCommit=$(GIT_COMMIT)" -o linky .
 
+build-all:
+	./build-all.sh
+
 install:
 	install -D -t $(DESTDIR)/usr/bin/ linky
+
+docker-image:
+	docker build -t xperimental/linky .
 
 clean:
 	rm -f linky
