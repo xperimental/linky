@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -14,15 +15,17 @@ type worker struct {
 	client    *http.Client
 	locations <-chan location
 	updates   chan<- update
+	userAgent string
 }
 
-func newWorker(locations <-chan location, updates chan<- update) *worker {
+func newWorker(locations <-chan location, updates chan<- update, userAgent string) *worker {
 	w := &worker{
 		client: &http.Client{
 			Timeout: clientTimeout,
 		},
 		locations: locations,
 		updates:   updates,
+		userAgent: userAgent,
 	}
 
 	go w.loop()
@@ -44,7 +47,17 @@ func (w *worker) fetchURL(location location) (result update) {
 	result.Location = location
 	start := time.Now()
 
-	res, err := w.client.Get(location.URL)
+	req, err := http.NewRequest(http.MethodGet, location.URL, nil)
+	if err != nil {
+		result.Error = fmt.Errorf("can not create request: %s", err)
+		return
+	}
+
+	if w.userAgent != "" {
+		req.Header.Set("User-Agent", w.userAgent)
+	}
+
+	res, err := w.client.Do(req)
 	result.ResponseTime = time.Since(start)
 
 	if err != nil {
