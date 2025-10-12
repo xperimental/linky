@@ -12,7 +12,7 @@ jobs:
     - name: Set up Go
       uses: actions/setup-go@v5
       with:
-        go-version-file: go.mod
+        go-version: 1.25.2
     - name: Test
       run: make test
   lint:
@@ -21,7 +21,7 @@ jobs:
     - uses: actions/checkout@v4
     - uses: actions/setup-go@v5
       with:
-        go-version-file: go.mod
+        go-version: 1.25.2
     - name: golangci-lint
       uses: golangci/golangci-lint-action@v6
       with:
