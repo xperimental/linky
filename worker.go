@@ -64,7 +64,7 @@ func (w *worker) fetchURL(location location) (result update) {
 		result.Error = err
 		return
 	}
-	defer res.Body.Close()
+	defer res.Body.Close() //nolint:errcheck
 
 	result.Status = res.StatusCode
 
