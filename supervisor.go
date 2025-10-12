@@ -71,11 +71,7 @@ func (s *supervisor) Results() []update {
 }
 
 func (s *supervisor) loop() {
-	for {
-		if len(s.queue) == 0 {
-			break
-		}
-
+	for len(s.queue) != 0 {
 		next := s.queue[0]
 		s.queue = s.queue[1:]
 
